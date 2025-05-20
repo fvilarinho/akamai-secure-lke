@@ -14,7 +14,7 @@ RUN python3 -m venv /opt/venv && \
 
 RUN adduser -D akamai-secure-lke
 
-USER linodeuser
+USER akamai-secure-lke
 
 ENV HOME_DIR=/home/akamai-secure-lke
 ENV BIN_DIR=${HOME_DIR}/bin

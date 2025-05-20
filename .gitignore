@@ -1,0 +1,8 @@
+/iac/terraform.tfvars
+/iac/terraform.tfstate
+/iac/terraform.tfstate.backup
+/iac/.terraform.lock.hcl
+/iac/.terraform/
+/.idea/
+/etc/configMaps.yaml
+/etc/secrets.yaml

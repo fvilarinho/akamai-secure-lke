@@ -1,0 +1,4 @@
+services:
+  linode-cli:
+    build: .
+    image: ${DOCKER_REGISTRY_URL}/${DOCKER_REGISTRY_ID}/linode-cli:${BUILD_VERSION}

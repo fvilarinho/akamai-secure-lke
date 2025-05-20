@@ -4,7 +4,7 @@ resource "local_sensitive_file" "secrets" {
 apiVersion: v1
 kind: Secret
 metadata:
-  name: linode-cli-secret
+  name: akamai-secure-lke-secrets
   namespace: ${var.settings.cluster.namespace}
 type: Opaque
 stringData:

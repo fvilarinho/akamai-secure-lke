@@ -4,10 +4,10 @@ resource "local_file" "configMaps" {
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: secure-lke-automation
+  name: akamai-secure-lke-automation
   namespace: ${var.settings.cluster.namespace}
 data:
-  linode-firewall: |-
+  run.sh: |-
     #!/bin/bash
 
     function checkDependencies() {

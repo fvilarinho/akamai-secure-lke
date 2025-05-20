@@ -1,4 +1,4 @@
 services:
-  linode-cli:
+  akamai-secure-lke:
     build: .
-    image: ${DOCKER_REGISTRY_URL}/${DOCKER_REGISTRY_ID}/linode-cli:${BUILD_VERSION}
+    image: ${DOCKER_REGISTRY_URL}/${DOCKER_REGISTRY_ID}/akamai-secure-lke:${BUILD_VERSION}

@@ -7,6 +7,8 @@ RUN apk update && \
                        python3 \
                        py3-pip
 
-RUN pip install linode-cli
+RUN pip3 install --upgrade pip
 
-CMD /bin/bash -c "echo 'Linode CLI is ready!'"
+RUN pip3 install linode-cli --upgrade
+
+CMD ["linode-cli", "--help"]

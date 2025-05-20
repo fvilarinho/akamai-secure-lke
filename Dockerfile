@@ -7,8 +7,11 @@ RUN apk update && \
                        python3 \
                        py3-pip
 
-RUN pip3 install --upgrade pip
+RUN python3 -m venv /opt/venv && \
+            . /opt/venv/bin/activate && \
+            pip3 install --upgrade pip && \
+            pip3 install --upgrade linode-cli
 
-RUN pip3 install linode-cli --upgrade
+ENV PATH="/opt/venv/bin:$PATH"
 
 CMD ["linode-cli", "--help"]

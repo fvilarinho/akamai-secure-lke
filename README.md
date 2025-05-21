@@ -30,7 +30,17 @@ set up your build environment.
 ### Latest build status
 - [![Akamai Secure LKE Pipeline](https://github.com/fvilarinho/akamai-secure-lke/actions/workflows/pipeline.yml/badge.svg)](https://github.com/fvilarinho/akamai-secure-lke/actions/workflows/pipeline.yml)
 
-## 3. Requirements
+## 3. Architecture
+The automation is consisted in 3 Kubernetes resources:
+
+1. Config Maps: Responsible to define the scripts and settings to run the automation. Please check the file `iac/configMaps.tf'.
+2. Secrets: Responsible to define the credentials to run the automation. Please check the file `iac/secrets.tf'.
+3. Cron Jobs: Responsible to execute the automation. Please check the file `iac/cronJobs.tf'.
+
+Basically, it will identify new nodes in the LKE cluster, fetching the public and private IPs and adding it into the the
+Firewall. It also will remove the old IPs from the Firewall, if the node is recycled or destroyed.
+
+## 4. Requirements
 
 ### Packaging and Publishing
 The container image used to execute the automation was custom-built with the following:
@@ -48,6 +58,8 @@ The following software must be installed in the environment to package and publi
 - `Any linux distribution with Kernel 5.x or later` or
 - `MacOS Catalina or later` or
 - `MS-Windows 10 or later with WSL2`
+
+Please check more details in files `etc/docker-compose.yaml` and `etc/Dockerfile`.
 
 Just execute the script below to start the packaging using the environment variables specified in the `.env` file:
 ```bash
@@ -80,7 +92,7 @@ Just execute the script below to start the deployment using the attributes speci
 After provisioning, you'll see that a firewall with the identifier of the cluster was created with the default rules to
 block unwanted access from public and private network. 
 
-## 4. Other resources
+## 5. Other resources
 - [Akamai Techdocs](https://techdocs.akamai.com)
 - [Akamai Connected Cloud](https://www.linode.com)
 

@@ -16,3 +16,21 @@ stringData:
     token = ${var.credentials.linode.token}
 EOT
 }
+
+resource "null_resource" "applySecrets" {
+  triggers = {
+    hash = md5(local_sensitive_file.secrets.filename)
+  }
+
+  provisioner "local-exec" {
+    environment = {
+      KUBECONFIG        = "../etc/${var.settings.cluster.identifier}-kubeconfig.yaml"
+      MANIFEST_FILENAME = local_sensitive_file.secrets.filename
+    }
+
+    quiet   = true
+    command = "../bin/applyManifest.sh"
+  }
+
+  depends_on = [ local_sensitive_file.secrets ]
+}

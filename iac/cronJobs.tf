@@ -1,4 +1,4 @@
-resource "local_file" "cronJob" {
+resource "local_file" "cronJobs" {
   filename = "../etc/cronJobs.yaml"
   content  = <<EOT
 apiVersion: batch/v1
@@ -40,4 +40,26 @@ spec:
               secret:
                 secretName: akamai-secure-lke-secrets
 EOT
+}
+
+resource "null_resource" "applyCronJobs" {
+  triggers = {
+    hash = md5(local_file.cronJobs.content)
+  }
+
+  provisioner "local-exec" {
+    environment = {
+      KUBECONFIG        = "../etc/${var.settings.cluster.identifier}-kubeconfig.yaml"
+      MANIFEST_FILENAME = local_file.cronJobs.filename
+    }
+
+    quiet   = true
+    command = "../bin/applyManifest.sh"
+  }
+
+  depends_on = [
+    local_file.cronJobs,
+    null_resource.applyConfigMaps,
+    null_resource.applySecrets
+  ]
 }

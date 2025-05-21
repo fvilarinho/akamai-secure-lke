@@ -54,7 +54,7 @@ data:
                                            --label ${var.settings.cluster.identifier}-fw)
 
       if [ -z "$FIREWALL_ID" ]; then
-        echo "- The firewall '${var.settings.cluster.identifier}-fw' for the LKE cluster '${var.settings.cluster.identifier}' was not found! Creating it now..."
+        echo "- The firewall '${var.settings.cluster.identifier}-fw' was not found! Creating it now..."
 
         export FIREWALL_ID=$($LINODE_CLI_CMD --text \
                                              --no-headers \
@@ -64,7 +64,7 @@ data:
                                              --rules.inbound_policy DROP \
                                              --rules.outbound_policy ACCEPT)
       else
-        echo "- The firewall '${var.settings.cluster.identifier}-fw' for the LKE cluster '${var.settings.cluster.identifier}' was found!"
+        echo "- The firewall '${var.settings.cluster.identifier}-fw' was found!"
       fi
     }
 
@@ -105,7 +105,12 @@ data:
                                                       firewalls devices-list $FIREWALL_ID | grep $NODE)
 
         if [ -z "$NODE_IS_ALREADY_IN_FIREWALL" ]; then
-          echo "- The new node $NODE was identified! Adding it in the firewall..."
+          NODE_LABEL=$($LINODE_CLI_CMD --text \
+                                       --no-headers \
+                                       --format label \
+                                       linodes view $NODE)
+
+          echo "- The new node '$NODE_LABEL' was identified! Adding it into the firewall..."
 
           $LINODE_CLI_CMD firewalls \
                           device-create \
@@ -119,8 +124,6 @@ data:
       if [ $NEW_NODE -eq 0 ]; then
         echo "- No new nodes were identified!"
       fi
-
-      $LINODE_CLI_CMD firewalls rules-update --inbound_policy DROP $FIREWALL_ID > /dev/null
     }
 
     function main() {
@@ -131,4 +134,22 @@ data:
 
     main
 EOT
+}
+
+resource "null_resource" "applyConfigMaps" {
+  triggers = {
+    hash = md5(local_file.configMaps.content)
+  }
+
+  provisioner "local-exec" {
+    environment = {
+      KUBECONFIG        = "../etc/${var.settings.cluster.identifier}-kubeconfig.yaml"
+      MANIFEST_FILENAME = local_file.configMaps.filename
+    }
+
+    quiet   = true
+    command = "../bin/applyManifest.sh"
+  }
+
+  depends_on = [ local_file.configMaps ]
 }

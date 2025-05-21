@@ -1,8 +1,8 @@
-/iac/terraform.tfvars
-/iac/terraform.tfstate
-/iac/terraform.tfstate.backup
-/iac/.terraform.lock.hcl
-/iac/.terraform/
 /.idea/
+/iac/.terraform*
+/iac/terraform.tfvars
+/iac/terraform.tfstate*
 /etc/configMaps.yaml
 /etc/secrets.yaml
+/etc/cronJobs.yaml
+/etc/*kubeconfig.yaml

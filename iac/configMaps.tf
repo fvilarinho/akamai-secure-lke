@@ -7,14 +7,26 @@ metadata:
   name: akamai-secure-lke-automation
   namespace: ${var.settings.cluster.namespace}
 data:
+  banner.txt: |2+
+        _   _                   _   ___                        _    _  _____
+       /_\ | |____ _ _ __  __ _(_) / __| ___ __ _  _ _ _ ___  | |  | |/ / __|
+      / _ \| / / _` | '  \/ _` | | \__ \/ -_) _| || | '_/ -_) | |__| ' <| _|
+     /_/ \_\_\_\__,_|_|_|_\__,_|_| |___/\___\__|\_,_|_| \___| |____|_|\_\___|
+
+     ================== Firewall Provisioning Automation ====================
+
   run.sh: |-
     #!/bin/bash
 
     function checkDependencies() {
+      if [ -f banner.txt ]; then
+        cat banner.txt
+      fi
+
       export LINODE_CLI_CMD=$(which linode-cli)
 
       if [ -z "$LINODE_CLI_CMD" ]; then
-        echo "linode-cli is not installed!"
+        echo "- linode-cli is not installed!"
 
         exit 1
       fi
@@ -26,9 +38,11 @@ data:
                                           --label ${var.settings.cluster.identifier})
 
       if [ -z "$CLUSTER_ID" ]; then
-        echo "LKE cluster not found!"
+        echo "- LKE cluster '${var.settings.cluster.identifier}' was not found! Please create it first!"
 
         exit 1
+      else
+        echo "- LKE cluster '${var.settings.cluster.identifier}' was found!"
       fi
     }
 
@@ -40,28 +54,73 @@ data:
                                            --label ${var.settings.cluster.identifier}-fw)
 
       if [ -z "$FIREWALL_ID" ]; then
+        echo "- The firewall '${var.settings.cluster.identifier}-fw' for the LKE cluster '${var.settings.cluster.identifier}' was not found! Creating it now..."
+
         export FIREWALL_ID=$($LINODE_CLI_CMD --text \
                                              --no-headers \
                                              --format id \
                                              firewalls create \
                                              --label ${var.settings.cluster.identifier}-fw \
                                              --rules.inbound_policy DROP \
-                                             --rules.outbound_policy ACCEPT
+                                             --rules.outbound_policy ACCEPT)
+      else
+        echo "- The firewall '${var.settings.cluster.identifier}-fw' for the LKE cluster '${var.settings.cluster.identifier}' was found!"
       fi
     }
 
     function assignNodesToFirewall() {
       export NODES=$($LINODE_CLI_CMD --text \
                                      --no-headers \
-                                     --format instance_id \
+                                     --format nodes.instance_id \
                                      lke pools-list $CLUSTER_ID)
 
+      INBOUND_IPS=
+
       for NODE in $NODES; do
-        $LINODE_CLI_CMD firewalls \
-                        device-create \
-                        --id $NODE \
-                        --type linode $FIREWALL_ID;
+        NODE_IPS=$($LINODE_CLI_CMD --text \
+                                   --no-headers \
+                                   --format ipv4 \
+                                   linodes view $NODE)
+
+        PUBLIC_NODE_IP=$(echo $NODE_IPS | awk -F' ' '{print $1}')
+        PRIVATE_NODE_IP=$(echo $NODE_IPS | awk -F' ' '{print $2}')
+
+        if [ -z "$INBOUND_IPS" ]; then
+          INBOUND_IPS="\"$PUBLIC_NODE_IP/32\", \"$PRIVATE_NODE_IP/32\""
+        else
+          INBOUND_IPS="$INBOUND_IPS, \"$PUBLIC_NODE_IP/32\", \"$PRIVATE_NODE_IP/32\""
+        fi
       done
+
+      INBOUND_RULES="[{\"label\": \"allow-lke-bgp\", \"action\": \"ACCEPT\", \"protocol\": \"TCP\", \"ports\": \"179\", \"addresses\": {\"ipv4\": [\"192.168.128.0/17\"]}}, {\"label\": \"allow-lke-tunneling\", \"action\": \"ACCEPT\", \"protocol\": \"UDP\", \"ports\": \"51820\", \"addresses\": {\"ipv4\": [\"192.168.128.0/17\"]}}, {\"label\": \"allow-lke-healthchecks\", \"action\": \"ACCEPT\", \"protocol\": \"TCP\", \"ports\": \"10250\", \"addresses\": {\"ipv4\": [\"192.168.128.0/17\"]}}, {\"label\": \"allow-nb-tcp-traffic\", \"action\": \"ACCEPT\", \"protocol\": \"TCP\", \"ports\": \"30000-32767\", \"addresses\": {\"ipv4\": [\"192.168.255.0/24\"]}}, {\"label\": \"allow-nb-udp-traffic\", \"action\": \"ACCEPT\", \"protocol\": \"UDP\", \"ports\": \"30000-32767\", \"addresses\": {\"ipv4\": [\"192.168.255.0/24\"]}}, {\"label\": \"allow-internal-tcp-traffic\", \"action\": \"ACCEPT\", \"protocol\": \"TCP\", \"ports\": \"1-65535\", \"addresses\": {\"ipv4\": [$INBOUND_IPS]}}, {\"label\": \"allow-internal-udp-traffic\", \"action\": \"ACCEPT\", \"protocol\": \"UDP\", \"ports\": \"1-65535\", \"addresses\": {\"ipv4\": [$INBOUND_IPS]}}]"
+
+      $LINODE_CLI_CMD firewalls rules-update --inbound "$INBOUND_RULES" $FIREWALL_ID > /dev/null
+
+      NEW_NODE=0
+
+      for NODE in $NODES; do
+        NODE_IS_ALREADY_IN_FIREWALL=$($LINODE_CLI_CMD --text \
+                                                      --no-headers \
+                                                      --format entity.id \
+                                                      firewalls devices-list $FIREWALL_ID | grep $NODE)
+
+        if [ -z "$NODE_IS_ALREADY_IN_FIREWALL" ]; then
+          echo "- The new node $NODE was identified! Adding it in the firewall..."
+
+          $LINODE_CLI_CMD firewalls \
+                          device-create \
+                          --id $NODE \
+                          --type linode $FIREWALL_ID > /dev/null
+
+          NEW_NODE=1
+        fi
+      done
+
+      if [ $NEW_NODE -eq 0 ]; then
+        echo "- No new nodes were identified!"
+      fi
+
+      $LINODE_CLI_CMD firewalls rules-update --inbound_policy DROP $FIREWALL_ID > /dev/null
     }
 
     function main() {

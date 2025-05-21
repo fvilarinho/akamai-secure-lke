@@ -1,4 +1,4 @@
 services:
   akamai-secure-lke:
-    build: .
+    build: iac
     image: ${DOCKER_REGISTRY_URL}/${DOCKER_REGISTRY_ID}/akamai-secure-lke:${BUILD_VERSION}

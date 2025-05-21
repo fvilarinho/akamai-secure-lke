@@ -12,14 +12,17 @@ RUN python3 -m venv /opt/venv && \
             pip3 install --upgrade pip && \
             pip3 install --upgrade linode-cli
 
-RUN adduser -D akamai-secure-lke
-
-USER akamai-secure-lke
-
-ENV HOME_DIR=/home/akamai-secure-lke
+ENV USER_ID=akamai-secure-lke
+ENV HOME_DIR=/home/${USER_ID}
 ENV BIN_DIR=${HOME_DIR}/bin
 ENV PATH="/opt/venv/bin:$PATH"
 
+RUN adduser -D ${USER_ID}
+
+USER USER_ID
+
 RUN mkdir -p ${BIN_DIR}
+
+WORKDIR ${HOME_DIR}
 
 CMD [ "linode-cli", "--help" ]

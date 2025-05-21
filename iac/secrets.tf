@@ -9,7 +9,10 @@ metadata:
 type: Opaque
 stringData:
   linode-cli: |-
-    [default]
+    [DEFAULT]
+    default-user = ${var.credentials.linode.identifier}
+
+    [${var.credentials.linode.identifier}]
     token = ${var.credentials.linode.token}
 EOT
 }

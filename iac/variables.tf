@@ -1,7 +1,8 @@
 variable "credentials" {
   default = {
     linode = {
-      token = "<token>"
+      identifier = "<identifier>"
+      token      = "<token>"
     }
   }
 }

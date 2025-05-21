@@ -23,6 +23,7 @@ spec:
           containers:
             - name: akamai-secure-lke
               image: ghcr.io/fvilarinho/akamai-secure-lke:latest
+              imagePullPolicy: Always
               command: [ "/home/akamai-secure-lke/bin/run.sh" ]
               volumeMounts:
                 - name: akamai-secure-lke-automation

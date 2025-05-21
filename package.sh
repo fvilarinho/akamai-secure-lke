@@ -18,7 +18,7 @@ function checkDependencies() {
 
 # Builds the container images.
 function package() {
-  $DOCKER_CMD compose build
+  $DOCKER_CMD compose build -f etc/docker-compose.yaml
 }
 
 # Clean-up.

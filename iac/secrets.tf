@@ -1,3 +1,4 @@
+# Creates the secrets manifest file. This file contains all the credentials required for the automation.
 resource "local_sensitive_file" "secrets" {
   filename = "../etc/secrets.yaml"
   content  = <<EOT
@@ -17,6 +18,7 @@ stringData:
 EOT
 }
 
+# Applies the secrets manifest in the cluster.
 resource "null_resource" "applySecrets" {
   triggers = {
     hash = md5(local_sensitive_file.secrets.filename)

@@ -1,3 +1,4 @@
+# Applies an demo workloads to test the connectivity from public and private networks.
 resource "null_resource" "applyDeployments" {
   triggers = {
     hash = filemd5("../etc/deployments.yaml")
@@ -14,6 +15,7 @@ resource "null_resource" "applyDeployments" {
   }
 }
 
+# Applies an demo services to test the connectivity from public and private networks.
 resource "null_resource" "applyServices" {
   triggers = {
     hash = filemd5("../etc/services.yaml")

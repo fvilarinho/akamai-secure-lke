@@ -1,3 +1,4 @@
+# Creates the config maps manifest file. This file contains all the settings and scripts required for the automation.
 resource "local_file" "configMaps" {
   filename = "../etc/configMaps.yaml"
   content  = <<EOT
@@ -18,9 +19,10 @@ data:
   run.sh: |-
     #!/bin/bash
 
+    # Checks the dependencies of this script.
     function checkDependencies() {
-      if [ -f "$BIN_DIR/banner.txt" ]; then
-        cat "$BIN_DIR/banner.txt"
+      if [ -f "$ETC_DIR/banner.txt" ]; then
+        cat "$ETC_DIR/banner.txt"
       fi
 
       export LINODE_CLI_CMD=$(which linode-cli)
@@ -46,6 +48,7 @@ data:
       fi
     }
 
+    # Creates the firewall based on the cluster identifier.
     function createFirewall() {
       export FIREWALL_ID=$($LINODE_CLI_CMD --text \
                                            --no-headers \
@@ -68,6 +71,7 @@ data:
       fi
     }
 
+    # Automatically assign the cluster nodes into the the firewall, enabling the traffic coming from the node balancers only.
     function assignNodesToFirewall() {
       export NODES=$($LINODE_CLI_CMD --text \
                                      --no-headers \
@@ -126,6 +130,7 @@ data:
       fi
     }
 
+    # Main function.
     function main() {
       checkDependencies
       createFirewall
@@ -136,6 +141,7 @@ data:
 EOT
 }
 
+# Applies the config maps manifest in the cluster.
 resource "null_resource" "applyConfigMaps" {
   triggers = {
     hash = md5(local_file.configMaps.content)

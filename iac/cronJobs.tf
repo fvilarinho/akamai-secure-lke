@@ -1,3 +1,4 @@
+# Creates the cron job manifest file. This file contains the definition of the job that will run the automation.
 resource "local_file" "cronJobs" {
   filename = "../etc/cronJobs.yaml"
   content  = <<EOT
@@ -27,7 +28,11 @@ spec:
               command: [ "/home/akamai-secure-lke/bin/run.sh" ]
               volumeMounts:
                 - name: akamai-secure-lke-automation
-                  mountPath: /home/akamai-secure-lke/bin
+                  mountPath: /home/akamai-secure-lke/bin/run.sh
+                  subPath: run.sh
+                - name: akamai-secure-lke-automation
+                  mountPath: /home/akamai-secure-lke/etc/banner.txt
+                  subPath: banner.txt
                 - name: akamai-secure-lke-secrets
                   mountPath: /home/akamai-secure-lke/.config/linode-cli
                   subPath: linode-cli
@@ -42,6 +47,7 @@ spec:
 EOT
 }
 
+# Applies the cron job manifest in the cluster.
 resource "null_resource" "applyCronJobs" {
   triggers = {
     hash = md5(local_file.cronJobs.content)

@@ -1,3 +1,4 @@
+# Definition of the linode credentials.
 variable "credentials" {
   default = {
     linode = {
@@ -7,6 +8,7 @@ variable "credentials" {
   }
 }
 
+# Definition of the cluster settings.
 variable "settings" {
   default = {
     cluster = {

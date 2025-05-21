@@ -19,7 +19,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 RUN adduser -D ${USER_ID}
 
-USER USER_ID
+USER ${USER_ID}
 
 RUN mkdir -p ${BIN_DIR}
 

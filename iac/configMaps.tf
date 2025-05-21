@@ -19,8 +19,8 @@ data:
     #!/bin/bash
 
     function checkDependencies() {
-      if [ -f banner.txt ]; then
-        cat banner.txt
+      if [ -f "$BIN_DIR/banner.txt" ]; then
+        cat "$BIN_DIR/banner.txt"
       fi
 
       export LINODE_CLI_CMD=$(which linode-cli)

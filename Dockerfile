@@ -20,6 +20,6 @@ ENV HOME_DIR=/home/akamai-secure-lke
 ENV BIN_DIR=${HOME_DIR}/bin
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN mkdir -p ${BIN_DUR}
+RUN mkdir -p ${BIN_DIR}
 
 CMD [ "linode-cli", "--help" ]

@@ -8,6 +8,9 @@ on:
       - "*.md"
       - "banner.txt"
       - "deploy.sh"
+      - "/bin/*.sh"
+      - "/etc/deployments.yaml"
+      - "/etc/services.yaml"
       - "/iac/*.tf"
       - "LICENSE"
 
